@@ -1,0 +1,75 @@
+# ── Secrets & Credentials ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials
+aws_credentials
+
+# ── Python ─────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+env/
+*.so
+
+# ── Data & Large Files ─────────────────────────────────────────
+*.xlsx
+*.csv
+*.pkl
+*.parquet
+*.h5
+*.hdf5
+data/lancedb/
+ml/models/*.pkl
+ml/models/*.joblib
+
+# ── Node / Frontend ────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ── macOS ──────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── IDE ────────────────────────────────────────────────────────
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ── Docker ─────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Logs ───────────────────────────────────────────────────────
+logs/
+*.log
+
+# ── Terraform / Infrastructure state ──────────────────────────
+*.tfstate
+*.tfstate.backup
+.terraform/

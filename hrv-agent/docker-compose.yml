@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  hrv-agent:
+    build:
+      context: .
+      target: production
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - HRV_API_KEY=${HRV_API_KEY:-dev-key-change-in-prod}
+      - MODEL_PATH=/app/ml/models/xgb_hrv_v1.pkl
+      - LANCEDB_PATH=/app/data/lancedb
+      - LOG_LEVEL=INFO
+    volumes:
+      - hrv_models:/app/ml/models
+      - hrv_lancedb:/app/data/lancedb
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  hrv_models:
+  hrv_lancedb:

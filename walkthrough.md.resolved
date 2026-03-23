@@ -1,0 +1,141 @@
+# HRV Agentic Intelligence System — Build Walkthrough
+
+## What Was Built
+
+A production-grade multi-agent AI system for clinical HRV-based sepsis risk detection, targeting the WHOOP AI Engineer portfolio. Built at `/Users/yashnayi/Desktop/HRV/hrv-agent/`.
+
+---
+
+## ✅ Verification Results
+
+### Model Training
+```
+Dataset: 4,314 records, 59 features, 12.5% sepsis prevalence (class imbalance handled via SMOTE)
+
+AUC-ROC:   0.9311  ✅  (target > 0.80)
+F1-Score:  0.6842
+Precision: 0.7927
+Recall:    0.6019  (0.7315 at threshold=0.10)
+
+Confusion Matrix:
+  TN=738  FP=17
+  FN=43   TP=65
+
+Top Features: fFdP, sgridAND, median, LF.Power, Power.Law.Slope, lf_dfa_interaction
+Model saved: ml/models/xgb_hrv_v1.pkl
+```
+
+### Unit Tests — 18/18 Passed ✅
+```
+tests/test_loader.py::test_validate_schema_passes         PASSED
+tests/test_loader.py::test_validate_schema_missing_column PASSED
+tests/test_loader.py::test_get_feature_groups             PASSED
+tests/test_loader.py::test_split_features_labels          PASSED
+tests/test_loader.py::test_get_stats_summary              PASSED
+tests/test_loader.py::test_all_feature_cols_count         PASSED
+tests/test_agents.py::test_healthy_record_no_anomalies    PASSED
+tests/test_agents.py::test_critical_lf_hf_flagged         PASSED
+tests/test_agents.py::test_low_multiscale_entropy_critical PASSED
+tests/test_agents.py::test_sd1_vagal_withdrawal_critical  PASSED
+tests/test_agents.py::test_dfa_fractal_breakdown_critical PASSED
+tests/test_agents.py::test_deduplication_keeps_highest_severity PASSED
+tests/test_agents.py::test_anomaly_detection_node_integration PASSED
+tests/test_classifier.py::test_feature_engineer_adds_columns PASSED
+tests/test_classifier.py::test_risk_score_bounded         PASSED
+tests/test_classifier.py::test_transform_requires_fit     PASSED
+tests/test_classifier.py::test_all_feature_names_count    PASSED
+tests/test_classifier.py::test_sd1_sd2_ratio_positive     PASSED
+
+18 passed in 3.28s
+```
+
+---
+
+## Architecture Built
+
+```
+hrv-agent/
+├── data/
+│   ├── models.py          ← Pydantic v2 — all 59 HRV fields w/ aliases + validators
+│   ├── loader.py          ← HRVClinicalLoader — validation, stats, feature groups
+│   └── vector_store.py    ← LanceDB + Titan Embeddings hybrid RAG
+├── ml/
+│   ├── features.py        ← Composite risk score + 4 interaction features
+│   ├── classifier.py      ← XGBoost + isotonic calibration + risk stratification
+│   └── trainer.py         ← SMOTE + 80/20 split + threshold optimization + metrics
+├── agents/
+│   ├── state.py           ← HRVAgentState TypedDict
+│   ├── graph.py           ← LangGraph StateGraph (8 nodes, conditional routing)
+│   └── nodes/
+│       ├── validation.py              ← Schema + physiological sanity checks
+│       ├── feature_analysis.py        ← Group-level HRV summaries
+│       ├── anomaly_detection.py       ← 10 hard clinical thresholds (no LLM)
+│       ├── ml_scoring.py              ← XGBoost inference + heuristic fallback
+│       ├── rag_retrieval.py           ← LanceDB cosine search (skipped in quick mode)
+│       ├── clinical_interpretation.py ← Claude Sonnet + deterministic fallback
+│       ├── recommendation.py          ← Sonnet + 4-tier template fallback
+│       └── synthesis.py               ← Final briefing + cost tracking
+├── tools/hrv_tools.py     ← 5 MCP tools (similarity search, risk calc, etc.)
+├── bedrock/
+│   ├── client.py          ← Lazy-loaded Sonnet + Haiku + Titan, retry decorator
+│   └── prompts.py         ← System prompts per node
+├── api/
+│   ├── main.py            ← FastAPI + Mangum Lambda adapter + startup pre-warming
+│   ├── auth.py            ← X-API-Key auth
+│   └── routes/
+│       ├── analyze.py     ← POST /analyze/single, /analyze/batch
+│       ├── chat.py        ← POST /chat (conversational coach)
+│       └── metrics.py     ← GET /model/metrics, /metrics, /similar/{id}, /health
+├── observability/
+│   ├── telemetry.py       ← NodeTelemetry + PipelineTelemetry + ring buffer
+│   └── evaluation.py      ← Metrics save/load
+├── tests/                 ← 18 unit tests (all passing)
+├── Dockerfile             ← Multi-stage build
+├── docker-compose.yml     ← Persistent volumes for model + LanceDB
+└── .github/workflows/deploy.yml ← CI: ruff + mypy + pytest + Docker build
+```
+
+---
+
+## Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Threshold optimization in training | Maximizes recall (clinical priority: minimize missed sepsis) |
+| SMOTE at threshold 0.50 (not data level) | Preserves calibration accuracy; SMOTE happens on features |
+| Lazy Bedrock loading | API and agents work without AWS credentials (graceful degradation) |
+| Heuristic fallback in every node | System is runnable without Bedrock for development/testing |
+| LangGraph conditional routing | "quick" mode skips RAG; critical anomalies expedite pipeline |
+| `scale_pos_weight=7.0` + SMOTE | Double-handles 87.5/12.5 imbalance for maximum robustness |
+
+---
+
+## To Run the System
+
+### Quick Start (virtual env with existing .venv)
+```bash
+cd /Users/yashnayi/Desktop/HRV/hrv-agent
+
+# Train model (already done — ml/models/xgb_hrv_v1.pkl exists)
+PYTHONPATH=. /Users/yashnayi/Desktop/HRV/.venv/bin/python ml/trainer.py \
+  "../HRV data 20201209 2.xlsx" ml/models/xgb_hrv_v1.pkl
+
+# Run tests
+PYTHONPATH=. /Users/yashnayi/Desktop/HRV/.venv/bin/python -m pytest tests/ -v
+
+# Run API (requires AWS credentials for Bedrock; runs in degraded mode without)
+cp .env.example .env  # fill in AWS keys
+PYTHONPATH=. /Users/yashnayi/Desktop/HRV/.venv/bin/python api/main.py
+```
+
+### Docker
+```bash
+cp .env.example .env  # fill in AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, HRV_API_KEY
+docker-compose up --build
+# API available at http://localhost:8000/docs
+```
+
+### Next steps to complete activation
+1. **Fill in `.env`** with your AWS credentials (Bedrock access needed for Claude 3 LLMs)
+2. **Populate LanceDB**: run `data/vector_store.py` to embed and index the 4,314 records
+3. **Deploy**: push to GitHub → CI/CD builds and validates Docker image automatically

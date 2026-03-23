@@ -1,0 +1,44 @@
+# syntax=docker/dockerfile:1
+
+# ── Lambda Production Dockerfile ──────────────────────────────────────────────
+# Uses AWS Lambda base image — required for Lambda container support
+# Handler: api.main.handler (Mangum adapter)
+
+FROM public.ecr.aws/lambda/python:3.12 AS builder
+
+WORKDIR /build
+
+# Build deps for XGBoost / LanceDB
+RUN pip install --upgrade pip
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt --target /build/packages
+
+# ── Runtime ────────────────────────────────────────────────────────────────────
+FROM public.ecr.aws/lambda/python:3.12
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Copy installed packages
+COPY --from=builder /build/packages ${LAMBDA_TASK_ROOT}
+
+# Copy application source
+COPY agents/       agents/
+COPY api/          api/
+COPY bedrock/      bedrock/
+COPY data/         data/
+COPY ml/           ml/
+COPY observability/ observability/
+COPY tools/        tools/
+
+# Copy pre-trained model (must exist before build)
+# Run: PYTHONPATH=. python ml/trainer.py first if missing
+COPY ml/models/xgb_hrv_v1.pkl ml/models/xgb_hrv_v1.pkl
+
+ENV PYTHONPATH=${LAMBDA_TASK_ROOT}
+ENV MODEL_PATH=${LAMBDA_TASK_ROOT}/ml/models/xgb_hrv_v1.pkl
+ENV LANCEDB_PATH=/tmp/lancedb
+ENV LOG_LEVEL=info
+
+# Lambda handler — Mangum wraps FastAPI
+CMD ["api.main.handler"]
