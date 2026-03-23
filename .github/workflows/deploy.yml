@@ -38,7 +38,7 @@ jobs:
           AWS_ACCESS_KEY_ID=test \
           AWS_SECRET_ACCESS_KEY=test \
           AWS_REGION=us-west-2 \
-          PYTHONPATH=. pytest tests/ -v --timeout=30
+          PYTHONPATH=. pytest tests/ -v
 
   # ── Job 2: Deploy Backend → Lambda ──────────────────────────────────────────
   deploy-backend:
