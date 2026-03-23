@@ -16,7 +16,6 @@ from agents.nodes.recommendation import recommendation_node
 from agents.nodes.synthesis import synthesis_node
 from agents.nodes.validation import data_validation_node
 from agents.state import HRVAgentState
-from data.models import RiskLevel
 
 logger = structlog.get_logger(__name__)
 

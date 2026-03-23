@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import os
 import time
 from typing import Any
 
 import structlog
 
 from agents.state import HRVAgentState
-from data.models import HRVRecord, RiskLevel
+from data.models import HRVRecord
 
 logger = structlog.get_logger(__name__)
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import sys
 import os
 
@@ -12,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from agents.nodes.anomaly_detection import _check_record, anomaly_detection_node
 from agents.state import HRVAgentState
-from data.models import AnomalyEvent, HRVRecord, RiskLevel
+from data.models import HRVRecord
 
 
 def make_record(**overrides) -> HRVRecord:

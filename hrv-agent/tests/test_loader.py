@@ -13,7 +13,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from data.loader import (
     ALL_COLS,
     ALL_FEATURE_COLS,
-    LABEL_COLS,
     HRVClinicalLoader,
 )
 

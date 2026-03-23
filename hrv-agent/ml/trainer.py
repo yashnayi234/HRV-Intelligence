@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import json
 import pickle
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -14,15 +13,13 @@ import structlog
 from imblearn.over_sampling import SMOTE
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import (
-    roc_curve,
-    auc,
     confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
     roc_auc_score,
 )
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import train_test_split
 
 from data.loader import HRVClinicalLoader
 from ml.classifier import HRVClassifier, TrainedModel
@@ -174,7 +171,7 @@ class HRVTrainer:
         for t in np.arange(0.10, 0.65, 0.01):
             preds_t = (probs >= t).astype(int)
             rec = recall_score(y_test, preds_t, zero_division=0)
-            prec = precision_score(y_test, preds_t, zero_division=0)
+            precision_score(y_test, preds_t, zero_division=0)
             f1_t = f1_score(y_test, preds_t, zero_division=0)
             if rec >= 0.75 and f1_t > best_f1:
                 best_f1 = f1_t
@@ -263,10 +260,10 @@ def main() -> None:
     print(f"  F1-Score:  {metrics.f1:.4f}  (target > 0.70)")
     print(f"  Precision: {metrics.precision:.4f}")
     print(f"  Recall:    {metrics.recall:.4f}  (target > 0.75)")
-    print(f"\nConfusion Matrix:")
+    print("\nConfusion Matrix:")
     for row in metrics.confusion_matrix:
         print(f"  {row}")
-    print(f"\nTop-10 Feature Importances:")
+    print("\nTop-10 Feature Importances:")
     for feat in metrics.top_features:
         print(f"  {feat['feature']:<45} {feat['importance']:.6f}")
 

@@ -8,7 +8,6 @@ from typing import Any
 from fastapi import APIRouter, Depends
 
 from api.auth import verify_api_key
-from data.models import ModelMetrics
 from observability.evaluation import load_saved_metrics
 from observability.telemetry import get_pipeline_history
 
@@ -64,7 +63,7 @@ async def health_check() -> dict[str, Any]:
 
     try:
         import boto3
-        client = boto3.client(
+        boto3.client(
             "bedrock-runtime",
             region_name=os.getenv("AWS_REGION", "us-east-1"),
         )

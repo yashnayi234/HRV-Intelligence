@@ -8,7 +8,7 @@ from typing import Any
 import structlog
 
 from agents.state import HRVAgentState
-from data.models import AnomalyEvent, RiskLevel
+from data.models import RiskLevel
 
 logger = structlog.get_logger(__name__)
 
@@ -65,8 +65,6 @@ async def recommendation_node(state: HRVAgentState) -> dict[str, Any]:
     interpretation = state.get("clinical_interpretation", "")
 
     recommendations: list[str] = []
-    input_tokens = 0
-    output_tokens = 0
 
     try:
         from bedrock.client import llm_sonnet
@@ -93,14 +91,13 @@ Return as a numbered list only.
         ])
         raw = str(response.content)
         # Parse numbered list
-        lines = [l.strip() for l in raw.split("\n") if l.strip()]
-        recommendations = [l for l in lines if l[0].isdigit() or l.startswith("-")]
+        lines = [line.strip() for line in raw.split("\n") if line.strip()]
+        recommendations = [line for line in lines if line[0].isdigit() or line.startswith("-")]
         if not recommendations:
             recommendations = [raw]
 
         if hasattr(response, "usage_metadata") and response.usage_metadata:
-            input_tokens = response.usage_metadata.get("input_tokens", 0)
-            output_tokens = response.usage_metadata.get("output_tokens", 0)
+            pass  # token usage is recorded elsewhere if needed
 
     except Exception as exc:
         logger.warning("Bedrock unavailable — using fallback recommendations", error=str(exc))

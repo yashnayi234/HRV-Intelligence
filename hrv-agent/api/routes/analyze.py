@@ -9,7 +9,6 @@ from fastapi import APIRouter, Depends
 from agents.graph import run_hrv_pipeline
 from api.auth import verify_api_key
 from data.models import (
-    AnomalyEvent,
     BatchAnalysisRequest,
     BatchAnalysisResult,
     HRVRecord,

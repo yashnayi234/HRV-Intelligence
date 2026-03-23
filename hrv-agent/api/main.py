@@ -27,9 +27,9 @@ structlog.configure(
     logger_factory=structlog.PrintLoggerFactory(),
 )
 
-from api.routes.analyze import router as analyze_router
-from api.routes.chat import router as chat_router
-from api.routes.metrics import router as metrics_router
+from api.routes.analyze import router as analyze_router  # noqa: E402
+from api.routes.chat import router as chat_router  # noqa: E402
+from api.routes.metrics import router as metrics_router  # noqa: E402
 
 # Add hrv-agent root to Python path for local imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

@@ -8,7 +8,7 @@ from typing import Any
 import structlog
 
 from agents.state import HRVAgentState
-from data.models import AnomalyEvent, RiskLevel
+from data.models import RiskLevel
 
 logger = structlog.get_logger(__name__)
 
@@ -20,9 +20,15 @@ with specific values], (3) Clinical Interpretation [2–3 sentences],
 
 def _build_synthesis_prompt(state: HRVAgentState) -> str:
     """Build synthesis prompt from all upstream agent outputs."""
-    records = state.get("records", [])
     risk_levels = state.get("risk_levels", [])
     risk_scores = state.get("risk_scores", [])
+    anomalies = state.get("anomalies", [])
+
+    # ... skipping to the second replacement ...
+    # Wait, replace_file_content only works on one contiguous block. 
+    # Let me do multi_replace_file_content instead. Wait, I'm using replace_file_content.
+    # Ah! I can't do two parts separated by 80 lines with replace_file_content easily. Let me abort this call and use multi_replace.
+    # But wait, since I've already typed it out, I'll just change the target content to match the first block, then do a second edit.
     anomalies = state.get("anomalies", [])
     interpretation = state.get("clinical_interpretation", "")
     recommendations = state.get("recommendations", [])
@@ -99,7 +105,6 @@ async def synthesis_node(state: HRVAgentState) -> dict[str, Any]:
         anomalies = state.get("anomalies", [])
         recommendations = state.get("recommendations", [])
         interpretation = state.get("clinical_interpretation", "")
-        dominant_patterns = state.get("dominant_patterns", [])
 
         primary_risk = risk_levels[0].value if risk_levels else "unknown"
         primary_prob = risk_scores[0] if risk_scores else 0.0

@@ -135,7 +135,6 @@ async def hrv_similarity_search(
     Returns:
         List of similar records with similarity score and sepsis outcome
     """
-    from data.vector_store import HRVVectorStore
 
     store = _get_vector_store()
     if not store.is_ready():
