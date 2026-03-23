@@ -1,4 +1,4 @@
-# Deployment Guide — AWS Lambda (Option B)
+# Deployment Guide — AWS Lambda
 ## HRV Agentic Intelligence System
 
 **Architecture:** Lambda + API Gateway → CloudFront + S3  
@@ -116,7 +116,7 @@ GitHub Actions will run automatically:
 ✅ Invalidate CloudFront cache
 ```
 
-Monitor at: **github.com/yourusername/hrv-agent/actions**
+Monitor at: **github.com/yashnayi234/hrv-agent/actions**
 
 ---
 
