@@ -16,7 +16,7 @@ SONNET_MODEL   = os.getenv("BEDROCK_SONNET_MODEL",   "us.anthropic.claude-3-5-so
 HAIKU_MODEL    = os.getenv("BEDROCK_HAIKU_MODEL",    "us.anthropic.claude-3-5-haiku-20241022-v1:0")
 SONNET_4_MODEL = os.getenv("BEDROCK_SONNET_4_MODEL", "us.anthropic.claude-sonnet-4-20250514-v1:0")
 
-AWS_REGION = os.getenv("AWS_REGION", "us-west-2")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 
 
 @lru_cache(maxsize=1)
