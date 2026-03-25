@@ -55,7 +55,11 @@ async def chat(
         ])
         reply = str(response.content)
 
-    except Exception:
+    except Exception as e:
+        import traceback
+        import sys
+        print(f"ERROR calling Bedrock: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         if not reply:
             reply = (
                 "I'm the HRV clinical coach. Please provide HRV records for analysis, "
