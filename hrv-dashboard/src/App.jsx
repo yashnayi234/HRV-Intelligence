@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import "./index.css";
 import { generateHRVData, recoveryColor, avg } from "./data";
 import { MetricCard, TodaySnapshot } from "./components/Cards";
-import { HRVChart, RecoveryChart, SleepStrainChart } from "./components/Charts";
+import { HRVChart, RecoveryChart, SleepStrainChart, CorrelationChart } from "./components/Charts";
 import AICoach from "./components/AICoach";
 
 const TEAL = "#1D9E75";
@@ -14,12 +14,13 @@ const AVG_HRV = Math.round(avg(DATA, "rmssd"));
 const AVG_RECOVERY = Math.round(avg(DATA, "recovery"));
 const AVG_SLEEP = avg(DATA, "sleep").toFixed(1);
 
-const tabs = [["hrv", "HRV"], ["recovery", "Recovery"], ["sleep", "Sleep & Strain"]];
+const tabs = [["hrv", "HRV"], ["recovery", "Recovery"], ["sleep", "Sleep & Strain"], ["correlation", "Sleep vs HRV"]];
 
 export default function App() {
   const [activeChart, setActiveChart] = useState("hrv");
   const chartData = useMemo(() => DATA.map(d => ({ ...d, avg: AVG_HRV })), []);
   const trendDiff = LATEST.rmssd - AVG_HRV;
+  const aiCoachRef = useRef(null);
 
   return (
     <div style={{
@@ -69,18 +70,26 @@ export default function App() {
 
         {/* 4 metric cards */}
         <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
-          <MetricCard label="30d avg HRV" value={AVG_HRV} unit="ms" sub="RMSSD" color={TEAL} />
+          <MetricCard 
+            label="30d avg HRV" value={AVG_HRV} unit="ms" sub="RMSSD" color={TEAL} 
+            onAction={() => aiCoachRef.current?.sendMessage(`Explain why my 30-day average HRV is ${AVG_HRV}ms.`)}
+          />
           <MetricCard
             label="Avg recovery" value={AVG_RECOVERY} unit="%"
             sub={AVG_RECOVERY >= 67 ? "Green zone" : AVG_RECOVERY >= 34 ? "Yellow zone" : "Red zone"}
             color={recoveryColor(AVG_RECOVERY)}
+            onAction={() => aiCoachRef.current?.sendMessage(`Explain why my average recovery score is ${AVG_RECOVERY}% today.`)}
           />
-          <MetricCard label="Avg sleep" value={AVG_SLEEP} unit="h" sub="per night" />
+          <MetricCard 
+            label="Avg sleep" value={AVG_SLEEP} unit="h" sub="per night" 
+            onAction={() => aiCoachRef.current?.sendMessage("How does my sleep duration correlate with my HRV?")}
+          />
           <MetricCard
             label="HRV trend"
             value={(trendDiff >= 0 ? "+" : "") + trendDiff} unit="ms"
             sub="vs 30d avg"
             color={trendDiff >= 0 ? TEAL : CORAL}
+            onAction={() => aiCoachRef.current?.sendMessage(`What causes a baseline drift of ${trendDiff}ms in HRV?`)}
           />
         </div>
 
@@ -112,6 +121,7 @@ export default function App() {
           {activeChart === "hrv" && <HRVChart data={chartData} avgHRV={AVG_HRV} />}
           {activeChart === "recovery" && <RecoveryChart data={DATA} />}
           {activeChart === "sleep" && <SleepStrainChart data={DATA} />}
+          {activeChart === "correlation" && <CorrelationChart data={DATA} />}
 
           {/* Legend */}
           <div style={{ display: "flex", gap: 16, marginTop: 10 }}>
@@ -143,6 +153,11 @@ export default function App() {
                 {label}
               </div>
             ))}
+            {activeChart === "correlation" && (
+              <div style={{ fontSize: 11, color: "var(--text-tertiary)" }}>
+                <span style={{ color: TEAL, fontWeight: 500 }}>Insight:</span> Every extra hour of sleep improves HRV by ~4ms.
+              </div>
+            )}
           </div>
         </div>
 
@@ -163,7 +178,7 @@ export default function App() {
         height: "100vh",
         overflow: "hidden",
       }}>
-        <AICoach data={DATA} fullHeight />
+        <AICoach ref={aiCoachRef} data={DATA} fullHeight />
       </div>
     </div>
   );

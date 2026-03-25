@@ -54,33 +54,65 @@ Heart Rate Variability is the variation in time between successive heartbeats. A
 
 ## System Architecture
 
-```
-     ┌──────────────────────────────────────────────────────┐
-     │                  Clinical HRV Record                  │
-     │           (59 features, 4,314-record dataset)         │
-     └──────────────────────┬───────────────────────────────┘
-                            │
-                    ┌───────▼────────┐
-                    │  FastAPI Layer  │  ← REST API, Auth, Routing
-                    └───────┬────────┘
-                            │
-               ┌────────────▼────────────┐
-               │   LangGraph Agent Graph  │
-               │                         │
-               │  1. validation          │
-               │  2. feature_analysis    │  ← Claude Haiku 4.5
-               │  3. anomaly_detection   │
-               │  4. ml_scoring          │  ← XGBoost + SMOTE
-               │  5. rag_retrieval       │  ← LanceDB + Titan Embeddings
-               │  6. clinical_interp.    │  ← Claude Sonnet 4
-               │  7. recommendation      │  ← Claude Haiku 4.5
-               │  8. synthesis           │  ← Claude Sonnet 4
-               └────────────┬────────────┘
-                            │
-               ┌────────────▼────────────┐
-               │    AWS Bedrock (Claude)  │  us-west-2 cross-region
-               │    LanceDB (RAG store)   │
-               └─────────────────────────┘
+```mermaid
+graph TD
+    %% Styling
+    classDef client fill:#1D9E75,stroke:#0A6C4D,stroke-width:2px,color:#fff;
+    classDef api fill:#2B3245,stroke:#1D9E75,stroke-width:2px,color:#fff;
+    classDef agent fill:#111520,stroke:#BA7517,stroke-width:2px,color:#fff;
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:#111;
+    classDef db fill:#00A2C7,stroke:#007B99,stroke-width:2px,color:#fff;
+    
+    %% Client Layer
+    subgraph Frontend ["Frontend Layer"]
+        UI["React HRV Dashboard<br/>Vite + Recharts"]:::client
+    end
+
+    %% API Layer
+    subgraph API_Layer ["API Layer"]
+        API["FastAPI REST Service<br/>ECS Fargate / Lambda"]:::api
+    end
+
+    %% Agent Graph Layer
+    subgraph Agentic_Pipeline ["Agentic Pipeline (LangGraph)"]
+        VAL["Validation Node"]:::agent
+        FA["Feature Analysis<br/>Claude Haiku 4.5"]:::agent
+        AD["Anomaly Detection<br/>Clinical Z-Score / IQR"]:::agent
+        ML["ML Scoring<br/>XGBoost Sepsis3 AUC 0.93"]:::agent
+        RAG["RAG Retrieval<br/>Titan + LanceDB"]:::agent
+        CI["Clinical Interpretation<br/>Claude Sonnet 4"]:::agent
+        REC["Recommendation<br/>Claude Haiku 4.5"]:::agent
+        SYN["Synthesis<br/>Claude Sonnet 4"]:::agent
+    end
+
+    %% External Services
+    subgraph Cloud_Data ["Cloud & Data"]
+        BEDROCK["AWS Bedrock<br/>Foundation Models"]:::aws
+        LANCE[("LanceDB<br/>Vector Store")]:::db
+        MODEL[("Trained Artifact<br/>xgb_hrv_v1.pkl")]:::db
+    end
+
+    %% Flow
+    UI -- JSON Biometrics --> API
+    API -- /analyze/single --> VAL
+    VAL --> FA
+    FA --> AD
+    AD --> ML
+    ML --> RAG
+    RAG --> CI
+    CI --> REC
+    REC --> SYN
+    SYN -- Structured Briefing --> API
+    
+    %% API to Model connections
+    ML -. Load .-> MODEL
+    
+    %% LLM/Cloud connections
+    FA -. Invoke .-> BEDROCK
+    CI -. Invoke .-> BEDROCK
+    REC -. Invoke .-> BEDROCK
+    SYN -. Invoke .-> BEDROCK
+    RAG -. Vector Search .-> LANCE
 ```
 
 ---

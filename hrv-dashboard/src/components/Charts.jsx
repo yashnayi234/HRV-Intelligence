@@ -1,5 +1,5 @@
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
+  AreaChart, Area, BarChart, Bar, LineChart, Line, ScatterChart, Scatter,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell
 } from "recharts";
 import { recoveryColor } from "../data";
@@ -71,6 +71,33 @@ export function SleepStrainChart({ data }) {
         <Line type="monotone" dataKey="strain" name="Strain" stroke={CORAL}
           strokeWidth={1.5} dot={false} strokeDasharray="4 2" activeDot={{ r: 3, strokeWidth: 0 }} />
       </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function CorrelationChart({ data }) {
+  // Map data to [{x: sleep, y: rmssd}]
+  const scatterData = data.map(d => ({ x: d.sleep, y: d.rmssd, date: d.label })).filter(d => d.x > 0);
+  
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <ScatterChart margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+        <XAxis type="number" dataKey="x" name="Sleep" unit="h" domain={["auto", "auto"]} tick={{ fontSize: 10, fill: GRAY }} axisLine={false} tickLine={false} />
+        <YAxis type="number" dataKey="y" name="HRV" unit="ms" domain={["auto", "auto"]} tick={{ fontSize: 10, fill: GRAY }} axisLine={false} tickLine={false} />
+        <Tooltip cursor={{ strokeDasharray: "3 3" }} content={(props) => {
+           if (!props.active || !props.payload?.length) return null;
+           const d = props.payload[0].payload;
+           return (
+             <div style={{ background: "#1f1f1f", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+               <div style={{ fontWeight: 500, marginBottom: 6, color: "var(--text-secondary)", fontSize: 11 }}>{d.date}</div>
+               <div style={{ color: "var(--text-primary)" }}>Sleep: <span style={{ fontWeight: 600 }}>{d.x}h</span></div>
+               <div style={{ color: "var(--text-primary)", marginTop: 2 }}>HRV: <span style={{ fontWeight: 600, color: TEAL }}>{d.y}ms</span></div>
+             </div>
+           );
+         }} />
+        <Scatter name="Sleep vs HRV" data={scatterData} fill={TEAL} shape="circle" />
+      </ScatterChart>
     </ResponsiveContainer>
   );
 }

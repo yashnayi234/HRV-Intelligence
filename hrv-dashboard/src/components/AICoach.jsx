@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 
 const TEAL = "#1D9E75";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
@@ -14,34 +14,20 @@ const QUICK_PROMPTS = [
 // Converts structured plain-text + minimal markdown to clean HTML
 function formatMsg(text) {
   return text
-    // Strip raw markdown headers (##, ###, ####)
-    .replace(/^#{1,4}\s+(.+)$/gm, (_, t) =>
-      `<span style="font-weight:600;color:var(--text-primary);display:block;margin-top:4px">${t}</span>`
-    )
-    // Section labels like "SUMMARY:", "KEY FINDINGS:", "RECOMMENDATION:", "TREND:"
-    .replace(/^(SUMMARY|KEY FINDINGS|FINDINGS|TREND|RECOMMENDATION|RECOMMENDATION\(S\)|ACTION|ALERT):?/gim, (_, label) =>
-      `<span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-secondary);text-transform:uppercase;display:block;margin-top:8px;margin-bottom:2px">${label}</span>`
-    )
-    // Remove markdown table pipes entirely — replace rows with clean lines
+    .replace(/^#{1,4}\s+(.+)$/gm, (_, t) => `<span style="font-weight:600;color:var(--text-primary);display:block;margin-top:4px">${t}</span>`)
+    .replace(/^(SUMMARY|KEY FINDINGS|FINDINGS|TREND|RECOMMENDATION|RECOMMENDATION\(S\)|ACTION|ALERT):?/gim, (_, label) => `<span style="font-size:10px;font-weight:700;letter-spacing:1px;color:var(--text-secondary);text-transform:uppercase;display:block;margin-top:8px;margin-bottom:2px">${label}</span>`)
     .replace(/^\|(.+)\|$/gm, (_, row) => {
       const cells = row.split("|").map(c => c.trim()).filter(Boolean);
-      if (cells.every(c => /^[-:]+$/.test(c))) return ""; // skip separator rows
+      if (cells.every(c => /^[-:]+$/.test(c))) return ""; 
       return `<span style="display:block;font-size:12px;color:var(--text-primary);margin:2px 0">${cells.join("  ·  ")}</span>`;
     })
-    // Bullet points — •, -, * at line start
-    .replace(/^[•\-\*]\s+(.+)$/gm, (_, content) =>
-      `<span style="display:flex;gap:6px;margin:3px 0;align-items:flex-start"><span style="color:#1D9E75;flex-shrink:0;margin-top:1px">•</span><span>${content}</span></span>`
-    )
-    // Bold **text**
+    .replace(/^[•\-\*]\s+(.+)$/gm, (_, content) => `<span style="display:flex;gap:6px;margin:3px 0;align-items:flex-start"><span style="color:#1D9E75;flex-shrink:0;margin-top:1px">•</span><span>${content}</span></span>`)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    // Inline code `text`
     .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.08);padding:1px 5px;border-radius:3px;font-size:11px">$1</code>')
-    // Line breaks
     .replace(/\n/g, "<br/>");
 }
 
-
-export default function AICoach({ data }) {
+const AICoach = forwardRef(function AICoach({ data }, ref) {
   const [messages, setMessages] = useState([{
     role: "assistant",
     content: `HRV coach online. I have access to your last **${data.length} days** of biometric data. Your most recent HRV is **${data[data.length-1].rmssd}ms**. Ask me anything.`,
@@ -79,6 +65,10 @@ export default function AICoach({ data }) {
     }
     setLoading(false);
   }, [input, messages, loading]);
+
+  useImperativeHandle(ref, () => ({
+    sendMessage
+  }));
 
   return (
     <div style={{
@@ -244,4 +234,6 @@ export default function AICoach({ data }) {
       </div>
     </div>
   );
-}
+});
+
+export default AICoach;
