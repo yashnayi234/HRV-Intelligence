@@ -98,7 +98,7 @@ jobs:
               --role "$LAMBDA_ROLE_ARN" \
               --timeout 120 \
               --memory-size 1024 \
-              --environment "Variables={LOG_LEVEL=info,AWS_REGION=${{ secrets.AWS_REGION }}}"
+              --environment "Variables={LOG_LEVEL=info}"
 
             # Wait until active
             aws lambda wait function-active --function-name "$FUNCTION_NAME"
