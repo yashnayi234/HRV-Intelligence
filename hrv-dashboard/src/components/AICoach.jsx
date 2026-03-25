@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 
 const TEAL = "#1D9E75";
-const API_URL = "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const API_KEY = "hrv-agent-dev-key-2024";
 
 const QUICK_PROMPTS = [
@@ -74,7 +74,7 @@ export default function AICoach({ data }) {
     } catch {
       setMessages(prev => [...prev, {
         role: "assistant",
-        content: "⚠️ Can't reach API at `localhost:8000`. Is the backend running?",
+        content: `⚠️ Can't reach API at <code>${API_URL}</code>. Is the backend running?`,
       }]);
     }
     setLoading(false);
