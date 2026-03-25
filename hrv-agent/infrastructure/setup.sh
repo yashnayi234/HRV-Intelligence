@@ -14,7 +14,7 @@ set -euo pipefail
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 APP_NAME="hrv-agent"
-REGION="${AWS_REGION:-us-west-2}"
+REGION="${AWS_REGION:-us-east-1}"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
 echo "══════════════════════════════════════════════"
