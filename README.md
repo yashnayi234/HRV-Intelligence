@@ -192,7 +192,7 @@ HRV/
 ### 1. Clone and set up Python environment
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/yashnayi234/HRV-Intelligence.git
 cd HRV
 python3 -m venv .venv
 source .venv/bin/activate
