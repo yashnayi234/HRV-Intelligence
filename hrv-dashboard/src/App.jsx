@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import "./index.css";
 import { generateHRVData, recoveryColor, avg } from "./data";
 import { MetricCard, TodaySnapshot } from "./components/Cards";
@@ -21,6 +21,17 @@ export default function App() {
   const chartData = useMemo(() => DATA.map(d => ({ ...d, avg: AVG_HRV })), []);
   const trendDiff = LATEST.rmssd - AVG_HRV;
   const aiCoachRef = useRef(null);
+
+  const [theme, setTheme] = useState(() => localStorage.getItem("hrv-theme") || "system");
+
+  useEffect(() => {
+    if (theme === "system") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", theme);
+    }
+    localStorage.setItem("hrv-theme", theme);
+  }, [theme]);
 
   return (
     <div style={{
@@ -50,13 +61,34 @@ export default function App() {
               Recovery Dashboard
             </h1>
           </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 10, color: "var(--text-secondary)", marginBottom: 3 }}>Today</div>
-            <div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>
-              {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+          <div style={{ textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <select 
+                value={theme} 
+                onChange={e => setTheme(e.target.value)}
+                style={{
+                  background: "var(--bg-card)",
+                  color: "var(--text-secondary)",
+                  border: "0.5px solid var(--border)",
+                  borderRadius: 6,
+                  padding: "4px 8px",
+                  fontSize: 10,
+                  cursor: "pointer",
+                  outline: "none"
+                }}
+              >
+                <option value="system">System Theme</option>
+                <option value="light">Light Mode</option>
+                <option value="dark">Dark Mode</option>
+              </select>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 500 }}>
+                {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              </div>
             </div>
             <div style={{
-              marginTop: 6, fontSize: 10, padding: "3px 8px",
+              fontSize: 10, padding: "3px 8px",
               background: "rgba(29,158,117,0.12)", color: TEAL,
               borderRadius: 4, display: "inline-block", letterSpacing: 0.5,
             }}>

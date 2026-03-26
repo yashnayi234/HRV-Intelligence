@@ -89,7 +89,7 @@ export function CorrelationChart({ data }) {
            if (!props.active || !props.payload?.length) return null;
            const d = props.payload[0].payload;
            return (
-             <div style={{ background: "#1f1f1f", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: "10px 14px", fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
+             <div style={{ background: "var(--bg-tooltip)", border: "0.5px solid var(--border)", borderRadius: 8, padding: "10px 14px", fontSize: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.4)" }}>
                <div style={{ fontWeight: 500, marginBottom: 6, color: "var(--text-secondary)", fontSize: 11 }}>{d.date}</div>
                <div style={{ color: "var(--text-primary)" }}>Sleep: <span style={{ fontWeight: 600 }}>{d.x}h</span></div>
                <div style={{ color: "var(--text-primary)", marginTop: 2 }}>HRV: <span style={{ fontWeight: 600, color: TEAL }}>{d.y}ms</span></div>

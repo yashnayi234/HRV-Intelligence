@@ -130,8 +130,8 @@ export function CustomTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: "#1f1f1f",
-      border: "0.5px solid rgba(255,255,255,0.1)",
+      background: "var(--bg-tooltip)",
+      border: "0.5px solid var(--border)",
       borderRadius: 8,
       padding: "10px 14px",
       fontSize: 12,
